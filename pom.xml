@@ -9,6 +9,7 @@
     <modules>
         <module>sc</module>
         <module>mt</module>
+        <module>hackerrank</module>
     </modules>
     <packaging>pom</packaging>
 
