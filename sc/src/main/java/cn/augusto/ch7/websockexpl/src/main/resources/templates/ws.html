@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Spring boot Web Socket</title>
+</head>
+<body onload="disconnect()">
+<noscript><h2 style="color:red"> your browser does not support websocket</h2></noscript>
+<div>
+    <div>
+        <button id="connect" onclick="connect();">Connect</button>
+        <button id="disconnect" onclick="disconnect(); " disabled="disabled" >Disconnect</button>
+    </div>
+    <div id="conversationDiv">
+        <label>Input your name:</label>
+        <input type="text" id="name" />
+        <button id="sendName" onclick="sendName(); ">Send</button>
+        <p id="rsp"></p>
+    </div>
+</div>
+
+<script th:src="@{sockjs.min.js}"></script>
+<script th:src="@{stomp.min.js}"></script>
+<script th:src="@{jquery-3.3.1.js}"></script>
+
+<script type="text/javascript">
+    var stompClient = null;
+    function setConnected(connected){
+        document.getElementById('connect').disabled = connected;
+        document.getElementById("disconnect").disabled = !connected;
+        document.getElementById('conversationDiv').visibility = connected ? 'visible' : 'hidden';
+        $('#rsp').html();
+
+    }
+
+    function connect(){
+        var socket = new SockJS('/epAugusto');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function(frame){
+           setConnected(true);
+           console.log("Connected " + frame);
+           stompClient.subscribe('/topic/rsp', function(rsp){
+              showResponse(JSON.parse(rsp.body).rspMsg)
+           });
+        });
+    }
+
+    function disconnect(){
+        if(stompClient != null){
+            stompClient.disconnect();
+        }
+        setConnected(false);
+        console.log("Disconnected")
+    }
+
+    function sendName(){
+        var name = $('#name').val();
+        stompClient.send("/welcome", {}, JSON.stringify({'msg':name}));
+    }
+
+    function showResponse(msg){
+        var ele =$('#rsp');
+        ele.html(msg);
+    }
+
+
+
+</script>
+
+</body>
+</html>
